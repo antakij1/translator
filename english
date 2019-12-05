@@ -1,0 +1,310 @@
+%%"english"
+%%
+%%This module parses English sentences, making sure they are grammatically 
+%%acceptable before passing them on to the translator.
+%%
+%%Example sentence forms that are understood are:
+%%"The small boy with the orange cat chases the yellow dog on the street"
+%%	which is <noun phrase><verb><noun phrase>
+%%"People like cars"
+%%	which is <noun phrase><verb><noun phrase>
+%%"Men do not run"
+%%	which is <noun phrase><verb>
+%%"The car will not be fast"
+%%	which is <noun phrase><form of 'be'><adjective>
+%%"Eat the food" (a command)
+%%	which is <verb(imperative)><noun phrase>
+%%"The children are in the blue house"
+%%	which is <noun phrase><form of 'be'><preposition><noun phrase>
+%%"Some dogs want to chase cats"
+%%	which is <noun phrase><conjugated verb><infinitive verb><noun phrase>
+%%Single word translations are also accepted.
+%%
+%%The possble arguments supplied to the english sentence predicate (e) are:
+%%N: the plurality of the noun in the noun phrase
+%%PrepN: the plurality of the noun in the prepositional phrase 
+%%T: tense of the conjugated verb
+%%P: positivity or negativity of the conjugated verb
+%%Det: a determinant word
+%%Adj: an adjective
+%%Noun: a noun
+%%Prep: a preposition
+%%PrepDet: the determinant word in a prepositional phrase
+%%PrepAdj: the adjective in a prepositional phrase
+%%PrepNoun: the noun in a prepositional phrase
+%%
+%%The above parameters, when modified with the numbers 1 or 2, indicate that
+%%there are two instances of that parameter type to keep track of in the 
+%%sentence.
+%%
+%%By: Joseph Antaki and Edward Klein
+%%Credit for general code style choices goes to Dr. N. L. Tinkham
+
+%%Form: "The small boy with the orange cat chases the yellow dog on the street";
+%%"People like cars"; "Men do not run"
+e(N1, PrepN1, T, P, N2, PrepN2, Det1, Adj1, Noun1, Prep1, PrepDet1, PrepAdj1,
+	PrepNoun1, Verb, Det2, Adj2, Noun2, Prep2, PrepDet2, PrepAdj2, PrepNoun2)
+	--> np(N1, PrepN1, Det1, Adj1, Noun1, Prep1, PrepDet1, PrepAdj1,
+	PrepNoun1), vp(T, P, N2, PrepN2, Verb, Det2, Adj2, Noun2, Prep2, PrepDet2,
+	PrepAdj2, PrepNoun2).
+
+%%Form: "The car will not be fast"
+e(N, PrepN, T, P, Det, Adj1, Noun, Prep, PrepDet, PrepAdj, PrepNoun, Be_Form, 
+	Adj2) --> np(N, PrepN, Det, Adj1, Noun, Prep, PrepDet, PrepAdj, PrepNoun), 
+	be_form(T, Be_Form), be_negation(T, P), adjective(N, Adj2).
+
+%%Form: "Eat the food"
+e(N, PrepN, imperative, P, Verb, Det, Adj, Noun, Prep, PrepDet, PrepAdj, 
+	PrepNoun) --> negation(imperative, P), verb(imperative, Verb), 
+	np(N, PrepN, Det, Adj, Noun, Prep, PrepDet, PrepAdj, PrepNoun).
+
+%%Form: "The children are in the blue house"
+e(N, PrepN1, T, P, PrepN2, Det, Adj, Noun, Prep1, PrepDet1, PrepAdj1, PrepNoun1,
+	Be_Form, Prep2, PrepDet2, PrepAdj2, PrepNoun2) --> np(N, PrepN1, Det,
+	Adj, Noun, Prep1, PrepDet1, PrepAdj1, PrepNoun1), be_form(T, Be_Form),
+	be_negation(T, P), prep_phrase(PrepN2, Prep2, PrepDet2, PrepAdj2, 
+	PrepNoun2).
+
+%%Form: "Some dogs want to chase cats"
+e(N1, PrepN1, T, P, N2, PrepN2, Det1, Adj1, Noun1, Prep1, PrepDet1, PrepAdj1,
+	PrepNoun1, Verb, InfVerb, Det2, Adj2, Noun2, Prep2, PrepDet2, PrepAdj2,
+	PrepNoun2) --> np(N1, PrepN1, Det1, Adj1, Noun1, Prep1, PrepDet1, 
+	PrepAdj1, PrepNoun1), negation(T, P), verb(T, Verb), vp(infinitive, 
+	positive, N2, PrepN2, InfVerb, Det2, Adj2, Noun2, Prep2, PrepDet2, 
+	PrepAdj2, PrepNoun2).
+
+%%One word translations
+e(Det) --> determinant(_, Det).
+e(Adj) --> adjective(_, Adj).
+e(T, P, Verb) --> negation(T, P), verb(T, Verb).%%allows infinitives, "[to,see]"
+e(N, Noun) --> noun(N, Noun).
+e(Prep) --> preposition(Prep).
+
+np(N, PrepN, Det, Adj, Noun, Prep, PrepDet, PrepAdj, PrepNoun) --> determinant(N,
+	Det), adjective(N, Adj), noun(N, Noun), prep_phrase(PrepN, Prep, PrepDet,
+	PrepAdj, PrepNoun). 
+np(N, Det, Adj, Noun) --> determinant(N, Det), adjective(N, Adj), noun(N, Noun).
+
+vp(T, P, N, PrepN, Verb, Det, Adj, Noun, Prep, PrepDet, PrepAdj, PrepNoun)
+	--> negation(T, P), verb(T, Verb), np(N, PrepN, Det, Adj, Noun, Prep, 
+	PrepDet, PrepAdj, PrepNoun).
+
+prep_phrase(PrepN, Prep, PrepDet, PrepAdj, PrepNoun) --> preposition(Prep), 
+	determinant(PrepN, PrepDet), adjective(PrepN, PrepAdj), noun(PrepN, 
+	PrepNoun).
+
+%%Vocabulary bank
+negation(past, negative) --> [did,not].
+negation(present, negative) --> [does,not].
+negation(present, negative) --> [do,not].
+negation(future, negative) --> [will,not].
+negation(imperative, negative) --> [do,not].
+negation(_, positive) --> [].
+
+determinant(singular, a) --> [a].
+determinant(singular, an) --> [an].
+determinant(_, the) --> [the].
+determinant(singular, every) --> [every].
+determinant(plural, all) --> [all].
+determinant(plural, some) --> [some].
+determinant(plural, '') --> [].
+
+adjective(_, orange) --> [orange].
+adjective(_, red) --> [red].
+adjective(_, yellow) --> [yellow].
+adjective(_, green) --> [green].
+adjective(_, blue) --> [blue].
+adjective(_, purple) --> [purple].
+adjective(_, pink) --> [pink].
+adjective(_, white) --> [white].
+adjective(_, black) --> [black].
+adjective(_, gray) --> [gray].
+adjective(_, brown) --> [brown].
+adjective(_, lazy) --> [lazy].
+adjective(_, athletic) --> [athletic].
+adjective(_, fast) --> [fast].
+adjective(_, slow) --> [slow].
+adjective(_, smart) --> [smart].
+adjective(_, dumb) --> [dumb].
+adjective(_, funny) --> [funny].
+adjective(_, good) --> [good].
+adjective(_, bad) --> [bad].
+adjective(_, happy) --> [happy].
+adjective(_, sad) --> [sad].
+adjective(_, big) --> [big].
+adjective(_, small) --> [small].
+adjective(_, beautiful) --> [beautiful].
+adjective(_, ugly) --> [ugly].
+adjective(_, handsome) --> [handsome].
+adjective(_, tall) --> [tall].
+adjective(_, short) --> [short].
+adjective(_, long) --> [long].
+adjective(_, hard) --> [hard].
+adjective(_, difficult) --> [difficult].
+adjective(_, easy) --> [easy].
+adjective(_, hot) --> [hot].
+adjective(_, cold) --> [cold].
+adjective(_, interesting) --> [interesting].
+adjective(_, long) --> [long].
+adjective(_, boring) --> [boring].
+adjective(_, '') --> [].
+
+verb(infinitive, run) --> [to, run].
+verb(infinitive, walk) --> [to, walk].
+verb(infinitive, go) --> [to, go].
+verb(infinitive, return) --> [to, return].
+verb(infinitive, come) --> [to, come].
+verb(infinitive, eat) --> [to, eat].
+verb(infinitive, drink) --> [to, drink].
+verb(infinitive, see) --> [to, see].
+verb(infinitive, chase) --> [to, chase].
+verb(infinitive, want) --> [to, want].
+verb(infinitive, like) --> [to,like].
+verb(infinitive, sing) --> [to,sing].
+verb(past, run) --> [ran].
+verb(past, walk) --> [walked].
+verb(past, go) --> [went].
+verb(past, return) --> [returned].
+verb(past, come) --> [came].
+verb(past, eat) --> [ate].
+verb(past, drink) --> [drank].
+verb(past, see) --> [saw].
+verb(past, chase) --> [chased].
+verb(past, want) --> [wanted].
+verb(past, like) --> [liked].
+verb(past, sing) --> [sang].
+
+%%The parser is lenient with singular/plural forms in the present tense, not
+%%caring if the plurality agrees with the sentence subject, because both
+%%present tense forms of an English verb translate to the same present tense
+%%verb in Esperanto. Eases use if the user's native language does not 
+%%distinguish subject-verb plurality, such as Esperanto.
+ 
+verb(present, run) --> [run].
+verb(present, run) --> [runs].
+verb(present, walk) --> [walk].
+verb(present, walk) --> [walks].
+verb(present, go) --> [go].
+verb(present, go) --> [goes].
+verb(present, return) --> [return].
+verb(present, return) --> [returns].
+verb(present, come) --> [come].
+verb(present, come) --> [comes].
+verb(present, eat) --> [eat].
+verb(present, eat) --> [eats].
+verb(present, drink) --> [drink].
+verb(present, drink) --> [drinks].
+verb(present, see) --> [see].
+verb(present, see) --> [sees].
+verb(present, chase) --> [chase].
+verb(present, chase) --> [chases].
+verb(present, want) --> [want].
+verb(present, want) --> [wants].
+verb(present, like) --> [like].
+verb(present, like) --> [likes].
+verb(present, sing) --> [sing].
+verb(present, sing) --> [sings].
+verb(future, run) --> [will, run].
+verb(future, walk) --> [will, walk].
+verb(future, go) --> [will, go].
+verb(future, return) --> [will, return].
+verb(future, come) --> [will, come].
+verb(future, eat) --> [will, eat].
+verb(future, drink) --> [will, drink].
+verb(future, see) --> [will, see].
+verb(future, chase) --> [will, chase].
+verb(future, want) --> [will,want].
+verb(future, like) --> [will, like].
+verb(future, sing) --> [will, sing].
+verb(imperative, run) --> [run].
+verb(imperative, walk) --> [walk].
+verb(imperative, go) --> [go].
+verb(imperative, return) --> [return].
+verb(imperative, come) --> [come].
+verb(imperative, eat) --> [eat].
+verb(imperative, drink) --> [drink].
+verb(imperative, see) --> [see].
+verb(imperative, chase) --> [chase].
+verb(imperative, sing) --> [sing].
+
+%%"to be" is treated specially
+be_form(infinitive, be) --> [to,be].
+be_form(past, be) --> [was].
+be_form(past, be) --> [were].
+be_form(present, be) --> [is].
+be_form(present, be) --> [are].
+be_form(future, be) --> [will].
+be_form(future, be) --> [will,be].
+
+be_negation(future, negative) --> [not, be].
+be_negation(_, negative) --> [not].
+be_negation(_, positive) --> [].
+
+%%If the verb was negated, the tense (now determined by the auxillary verb "do",
+%%as in "did not see") will not match up with the present singular form of the 
+%%verb (in this example, "see") until Prolog checks down here. (Otherwise,
+%%Prolog will be looking for "did not saw", which is ungrammatical). This area
+%%is not accessible when translating a positive sentence. 
+verb(_, run) --> [run].
+verb(_, walk) --> [walk].
+verb(_, go) --> [go].
+verb(_, return) --> [return].
+verb(_, come) --> [come].
+verb(_, eat) --> [eat].
+verb(_, drink) --> [drink].
+verb(_, see) --> [see].
+verb(_, chase) --> [chase].
+verb(_, sing) --> [sing].
+
+noun(singular, man) --> [man].
+noun(singular, woman) --> [woman].
+noun(singular, person) --> [person].
+noun(singular, child) --> [child].
+noun(singular, animal) --> [animal].
+noun(singular, dog) --> [dog].
+noun(singular, cat) --> [cat].
+noun(singular, house) --> [house].
+noun(singular, food) --> [food].
+noun(singular, computer) --> [computer].
+noun(singular, table) --> [table].
+noun(singular, street) --> [street].
+noun(singular, boy) --> [boy].
+noun(singular, girl) --> [girl].
+noun(singular, book) --> [book].
+noun(singular, school) --> [school].
+noun(singular, car) --> [car].
+noun(singular, song) --> [song].
+noun(singular, work) --> [work].
+noun(singular, idea) --> [idea].
+noun(singular, bag) --> [bag].
+noun(plural, man) --> [men].
+noun(plural, woman) --> [women].
+noun(plural, person) --> [people].
+noun(plural, child) --> [children].
+noun(plural, animal) --> [animals].
+noun(plural, dog) --> [dogs].
+noun(plural, cat) --> [cats].
+noun(plural, house) --> [houses].
+noun(plural, food) --> [foods].
+noun(plural, computer) --> [computers].
+noun(plural, table) --> [tables].
+noun(plural, street) --> [streets].
+noun(plural, boy) --> [boys].
+noun(plural, girl) --> [girls].
+noun(plural, book) --> [books].
+noun(plural, school) --> [schools].
+noun(plural, car) --> [cars].
+noun(plural, song) --> [songs].
+noun(plural, work) --> [works].
+noun(plural, idea) --> [ideas].
+noun(plural, bag) --> [bags].
+noun(_, '') --> [].
+
+preposition(in) --> [in].
+preposition(on) --> [on].
+preposition(above) --> [above].
+preposition(below) --> [below].
+preposition(beside) --> [beside].
+preposition(beside) --> [next,to].
+preposition(with) --> [with].
+preposition('') --> [].

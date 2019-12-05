@@ -1,0 +1,8 @@
+%%"load"
+%%
+%%This single module loads all the other modules required to tun the English to
+%%Esperanto translator.
+%%
+%%By: Joseph Antaki and Edward Klein
+%%Credit for general code style choices goes to Dr. N. L. Tinkham.
+?- [english, esperanto, translate].

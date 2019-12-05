@@ -1,0 +1,126 @@
+%%"esperanto"
+%%
+%%This module provides mappings from uninflected, English words to similarly
+%%uninflected Esperanto words, to be called on when translating.
+%%By Joseph Antaki and Edward Klein
+
+%%map(+Word, -Stem).
+%%Word is the English word to be translated. Stem is the uninflected
+%%Esperanto equivalent to Word.
+map('', '').
+
+%%determinants
+map(the, la).
+map(a, '').
+map(an, '').
+map(every, ĉiu).
+map(all, ĉiuj).
+map(some, '').
+
+%%adjectives
+map(orange, oranĝa).
+map(red, ruĝa).
+map(yellow, flava).
+map(green, verda).
+map(blue, blua).
+map(purple, purpura).
+map(pink, rozkolora).
+map(white, blanka).
+map(black, nigra).
+map(lazy, pigra).
+map(fast, rapida).
+map(slow, malrapida). 
+map(smart, inteligenta).
+map(dumb, neinteligenta).
+map(funny, amuza).
+map(good, bona).
+map(bad, malbona).
+map(happy, feliĉa).
+map(sad, malfeliĉa).
+map(big, granda).
+map(small, malgranda).
+map(gray, griza).
+map(brown, bruna).
+map(athletic, atleta).
+map(beautiful, bela).
+map(ugly, malbela).
+map(handsome, bela).
+map(tall, alta).
+map(short, mallonga).
+map(long, longa).
+map(hard, malfacila).
+map(easy, facila).
+map(difficult, malfacila).
+map(hot, varma).
+map(cold, malvarma).
+map(interesting, interesa).
+map(boring, enua). 
+
+%%verbs
+map(run, kur).
+map(walk, marŝ).
+map(go, ir).
+map(return, reven).
+map(come, ven).
+map(eat, manĝ).
+map(drink, trink).
+map(see, vid).
+map(chase, ĉas).
+map(be, est).
+map(want, vol).
+map(like, ŝat).
+map(sing, kant).
+
+%%nouns
+map(man, viro).
+map(woman, virino).
+map(person, persono).
+map(child, infano).
+map(animal, besto).
+map(dog, hundo).
+map(cat, kato).
+map(house, domo).
+map(food, manĝo).
+map(computer, komputilo).
+map(table, tablo).
+map(street, strato).
+map(boy, knabo).
+map(girl, knabino).
+map(book, libro).
+map(school, lernejo).
+map(car, aŭto).
+map(song, kanto).
+map(idea, ideo).
+map(work, laboro).
+map(bag, sako).
+
+%%prepositions
+map(in, en).
+map(on, sur).
+map(above, super).
+map(below, sub).
+map(with, kun).
+map(beside, apud).
+
+%%get_suffix(+N, +D, +Type, -Suffix).
+%%Attaches suffixes to Esperanto nouns and adjectives based on the word's part
+%%of speech, and other contextual information.
+%%N is the plurality of the word we are considering. D is the word's declension
+%%(subject or object), Type is the word's part of speech, and Suffix is the 
+%%ending to append to the end of the word.
+get_suffix(singular, subject, noun, ''). %%The predicate interprets adjectives
+	%%as nouns, because they are inflected the same way in Esperanto.
+get_suffix(plural, subject, noun, 'j').
+get_suffix(singular, object, noun, 'n').
+get_suffix(plural, object, noun, 'jn').
+
+%%get_suffix(+T, +Type, -Suffix).
+%%Attaches suffixes to Esperanto verbs based on the verb's conjugation.
+%%T is the tense of the verb we are considering. Type is the word's 
+%%part of speech (currently, always a verb), and Suffix is the ending to
+%%append to the end of the verb.
+get_suffix(infinitive, verb, 'i').
+get_suffix(imperative, verb, 'u').
+get_suffix(past, verb, 'is').
+get_suffix(present, verb, 'as').
+get_suffix(future, verb, 'os').

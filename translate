@@ -1,0 +1,182 @@
+%%"translate"
+%%
+%%This module takes in a grammatically acceptable English sentence, and
+%%translates it to a grammatically acceptable Esperanto sentence. It does this
+%%by mapping the base forms of English words to the base forms of Esperanto
+%%words, and then by inferring the context of each word to append the 
+%%appropriate declensions or conjugations.
+%%
+%%By Joseph Antaki and Edward Klein
+%%Credit for general code style choices goes to Dr. N. L. Tinkham.
+
+%%Top-Level predicates
+
+%%The command to start the translator. Prints directions and starts the 
+%%main loop.
+start :- write('Welcome to the English to Esperanto Translator.'), nl,
+	write('[please,enter,your,sentences,as,a,list,like,this].'), nl, nl, 
+	run.
+
+%%The main loop. Takes user input and calls the parser. 
+run :- write('English: '), read(Sentence), parse(Sentence).
+
+%%Parser for user input. If the input is a grammatically acceptable English 
+%%sentence, translation predicates are called. 
+parse([quit]) :- !.
+
+%%Form: "The small boy with the orange cat chases the yellow dog on the street";
+%%"People like cars"; "Men do not run"
+parse(Sentence) :- e(N1, PrepN1, T, P, N2, PrepN2, Det1, Adj1, Noun1,
+	Prep1, PrepDet1, PrepAdj1, PrepNoun1, Verb, Det2, Adj2, Noun2, 
+	Prep2, PrepDet2, PrepAdj2, PrepNoun2, Sentence, []), Noun1 \== '', !,
+	translate_determinant(Det1, Det1Esperanto), translate_adjective(N1,
+	subject, Adj1, Adj1Esperanto), translate_noun(N1, subject, Noun1,
+	Noun1Esperanto), translate_preposition(Prep1, Prep1Esperanto),
+	translate_determinant(PrepDet1, PrepDet1Esperanto), translate_adjective(
+	PrepN1, subject, PrepAdj1, PrepAdj1Esperanto), translate_noun(PrepN1,
+	subject, PrepNoun1, PrepNoun1Esperanto), translate_verb(T, P, Verb,
+	VerbEsperanto),	translate_determinant(Det2, Det2Esperanto), 
+	translate_adjective(N2, object, Adj2, Adj2Esperanto), translate_noun(N2,
+	object, Noun2, Noun2Esperanto), translate_preposition(Prep2, 
+	Prep2Esperanto), translate_determinant(PrepDet2, PrepDet2Esperanto), 
+	translate_adjective(PrepN2, subject, PrepAdj2, PrepAdj2Esperanto), 
+	translate_noun(PrepN2, subject, PrepNoun2, PrepNoun2Esperanto), delete( 
+	[Det1Esperanto, Noun1Esperanto, Adj1Esperanto, Prep1Esperanto, 
+	PrepDet1Esperanto, PrepNoun1Esperanto, PrepAdj1Esperanto, VerbEsperanto,
+	Det2Esperanto, Noun2Esperanto, Adj2Esperanto, Prep2Esperanto, 
+	PrepDet2Esperanto, PrepNoun2Esperanto, PrepAdj2Esperanto], '', List),
+	write('Esperanto: '), write(List), nl, run.
+
+%%Form: "The car will not be fast"
+parse(Sentence) :- e(N, PrepN, T, P, Det, Adj1, Noun, Prep, PrepDet, PrepAdj,
+	PrepNoun, Be_Form, Adj2, Sentence, []), Noun \== '', !, 
+	translate_determinant(Det, DetEsperanto), translate_adjective(N, 
+	subject, Adj1, Adj1Esperanto), translate_noun(N, subject, Noun, 
+	NounEsperanto), translate_preposition(Prep, PrepEsperanto), 
+	translate_determinant(PrepDet, PrepDetEsperanto), translate_adjective(
+	PrepN, subject, PrepAdj, PrepAdjEsperanto), translate_noun(PrepN, 
+	subject, PrepNoun, PrepNounEsperanto), translate_verb(T, P, Be_Form, 
+	Be_FormEsperanto), translate_adjective(N, subject, Adj2, Adj2Esperanto),
+	delete([DetEsperanto, NounEsperanto, Adj1Esperanto, PrepEsperanto,
+	PrepDetEsperanto, PrepNounEsperanto, PrepAdjEsperanto, Be_FormEsperanto,
+	Adj2Esperanto], '', List), write('Esperanto: '), write(List), nl, run.
+
+%%Form: "Eat the food"
+parse(Sentence) :- e(N, PrepN, imperative, P, Verb, Det, Adj, Noun, Prep, 
+	PrepDet, PrepAdj, PrepNoun, Sentence, []), !, translate_verb(imperative,
+	P, Verb, VerbEsperanto), translate_determinant(Det, DetEsperanto),
+	translate_adjective(N, object, Adj, AdjEsperanto), translate_noun(N,
+	object, Noun, NounEsperanto), translate_preposition(Prep, 
+	PrepEsperanto), translate_determinant(PrepDet, PrepDetEsperanto), 
+	translate_adjective(PrepN, subject, PrepAdj, PrepAdjEsperanto), 
+	translate_noun(PrepN, subject, PrepNoun, PrepNounEsperanto), delete(
+	[VerbEsperanto, DetEsperanto, NounEsperanto, AdjEsperanto, 
+	PrepEsperanto, PrepDetEsperanto, PrepNounEsperanto, PrepAdjEsperanto],
+	'', List), write('Esperanto: '), write(List), nl, run.
+
+%%Form: "The children are in the blue house"
+parse(Sentence) :- e(N, PrepN1, T, P, PrepN2, Det, Adj, Noun, Prep1, PrepDet1,
+	PrepAdj1, PrepNoun1, Be_Form, Prep2, PrepDet2, PrepAdj2, PrepNoun2, 
+	Sentence, []), Noun \== '', !, translate_determinant(Det, DetEsperanto),
+	translate_adjective(N, subject, Adj, AdjEsperanto), translate_noun(N,
+	subject, Noun, NounEsperanto), translate_preposition(Prep1, 
+	Prep1Esperanto), translate_determinant(PrepDet1, PrepDet1Esperanto),
+	translate_adjective(PrepN1, subject, PrepAdj1, PrepAdj1Esperanto),
+	translate_noun(PrepN1, subject, PrepNoun1, PrepNoun1Esperanto),
+	translate_verb(T, P, Be_Form, Be_FormEsperanto), translate_preposition(
+	Prep2, Prep2Esperanto), translate_determinant(PrepDet2, 
+	PrepDet2Esperanto), translate_adjective(PrepN2, subject, PrepAdj2,
+	PrepAdj2Esperanto), translate_noun(PrepN2, subject, PrepNoun2,
+	PrepNoun2Esperanto), delete([DetEsperanto, NounEsperanto, AdjEsperanto,
+	Prep1Esperanto, PrepDet1Esperanto, PrepNoun1Esperanto, 
+	PrepAdj1Esperanto, Be_FormEsperanto, Prep2Esperanto, PrepDet2Esperanto,
+	PrepNoun2Esperanto, PrepAdj2Esperanto], '', List), write('Esperanto: '),
+	write(List), nl, run.	
+
+%%Form: "Some dogs want to chase cats"
+parse(Sentence) :- e(N1, PrepN1, T, P, N2, PrepN2, Det1, Adj1, Noun1,
+	Prep1, PrepDet1, PrepAdj1, PrepNoun1, Verb, InfVerb, Det2, Adj2, Noun2, 
+	Prep2, PrepDet2, PrepAdj2, PrepNoun2, Sentence, []), Noun1 \== '', !, 
+	translate_determinant(Det1, Det1Esperanto), translate_adjective(N1,
+	subject, Adj1, Adj1Esperanto), translate_noun(N1, subject, Noun1,
+	Noun1Esperanto), translate_preposition(Prep1, Prep1Esperanto),
+	translate_determinant(PrepDet1, PrepDet1Esperanto), translate_adjective(
+	PrepN1, subject, PrepAdj1, PrepAdj1Esperanto), translate_noun(PrepN1,
+	subject, PrepNoun1, PrepNoun1Esperanto), translate_verb(T, P, Verb,
+	VerbEsperanto),	translate_verb(infinitive, positive, InfVerb, 
+	InfVerbEsperanto), translate_determinant(Det2, Det2Esperanto),
+	translate_adjective(N2, object, Adj2, Adj2Esperanto), translate_noun(N2,
+	object, Noun2, Noun2Esperanto), translate_preposition(Prep2, 
+	Prep2Esperanto), translate_determinant(PrepDet2, PrepDet2Esperanto), 
+	translate_adjective(PrepN2, subject, PrepAdj2, PrepAdj2Esperanto), 
+	translate_noun(PrepN2, subject, PrepNoun2, PrepNoun2Esperanto), delete( 
+	[Det1Esperanto, Noun1Esperanto, Adj1Esperanto, Prep1Esperanto, 
+	PrepDet1Esperanto, PrepNoun1Esperanto, PrepAdj1Esperanto, VerbEsperanto,
+	InfVerbEsperanto, Det2Esperanto, Noun2Esperanto, Adj2Esperanto, 
+	Prep2Esperanto, PrepDet2Esperanto, PrepNoun2Esperanto, 
+	PrepAdj2Esperanto], '', List), write('Esperanto: '), write(List), nl,
+	run. 
+
+%%One word translations
+parse(Sentence) :- e(Det, Sentence, []), !, translate_determinant(Det,
+	DetEsperanto), write('Esperanto: '), write(DetEsperanto), nl, run.
+
+parse(Sentence) :- e(Adj, Sentence, []), !, translate_adjective(singular,
+	subject, Adj, AdjEsperanto), write('Esperanto: '), write(AdjEsperanto),
+	nl, run.
+
+parse(Sentence) :- e(T, P, Verb, Sentence, []), translate_verb(T, P, Verb,
+	VerbEsperanto), write('Esperanto: '), write(VerbEsperanto), nl, run.
+
+parse(Sentence) :- e(N, Noun,  Sentence, []), !, translate_noun(N, subject, 
+	Noun, NounEsperanto), write('Esperanto: '), write(NounEsperanto), nl,
+	run.
+
+parse(Sentence) :- e(Prep, Sentence, []), !, translate_preposition(Prep,
+	PrepEsperanto), write('Esperanto: '), write(PrepEsperanto), nl, run.
+
+%%If Sentence is not decipherable
+parse(_) :- write('You may have typed in a word I don''t understand, or your '), 
+	write('sentence may be in a format I can''t process.'), nl, run.
+
+%%Translation predicates
+
+%%translate_noun(+N, +D, +Word, -Esperanto).
+%%N is the plurality of this noun, D is the declension (subject or object) of
+%%this noun, Word is the English noun to be translated, Esperanto is the
+%%translation of Word.
+translate_noun(_, _, '', '').
+translate_noun(N, D, Word, Esperanto) :- map(Word, Stem), get_suffix(N, D, noun,
+	Suffix), atom_concat(Stem, Suffix, Esperanto).
+
+%%translate_verb(+T, +P, +Word, -Esperanto).
+%%T is the tense of this verb, P is the positivity or negativity of this verb,
+%%Word is the English verb to be translated, Esperanto is the translation of 
+%%Word.
+translate_verb(_, _, '', '').
+translate_verb(T, negative, Word, Esperanto) :- map(Word, Stem), get_suffix(T, 
+	verb, Suffix), atom_concat(Stem, Suffix, EsperantoVerb), atom_concat(
+	'ne ', EsperantoVerb, Esperanto). 
+translate_verb(T, positive, Word, Esperanto) :- map(Word, Stem), get_suffix(T,
+	verb, Suffix), atom_concat(Stem, Suffix, Esperanto).
+
+%%translate_determinant(+Word, -Esperanto).
+%%Word is the English determinant to be translated, Esperanto is the
+%%translation of Word.
+translate_determinant('', '').
+translate_determinant(Word, Esperanto) :- map(Word, Esperanto).
+
+
+%%translate_adjective(+N, +D, +Word, -Esperanto).
+%%N is the plurality of this adjective, D is the declension (subject or object)
+%%of this adjective, Word is the English adjective to be translated, Esperanto
+%%is the translation of Word.
+translate_adjective(_, _, '', '').
+translate_adjective(N, D, Word, Esperanto) :- map(Word, Stem), get_suffix(N, D,
+	noun, Suffix), atom_concat(Stem, Suffix, Esperanto).
+
+%%translate_preposition(+Word, -Esperanto).
+%%Word is the English preposition to be translated, Esperanto is the
+%%translation of Word.
+translate_preposition('', '').
+translate_preposition(Word, Esperanto) :- map(Word, Esperanto).
